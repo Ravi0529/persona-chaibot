@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 import os
-import ast
+import re
+import html
 
 load_dotenv()
 
@@ -27,11 +28,30 @@ class Prompt(BaseModel):
 with open("system-prompt.txt", "r", encoding="utf-8") as file:
     system_prompt = file.read()
 
+chat_history = []
+
+def clean_response(text: str) -> str:
+    cleaned = re.sub(r"^```[\w]*\n", "", text.strip())
+    cleaned = re.sub(r"\n?```$", "", cleaned)
+    cleaned = html.unescape(cleaned)
+    if cleaned.startswith('"') and cleaned.endswith('"'):
+        cleaned = cleaned[1:-1]
+    cleaned = cleaned.replace("\\n", "\n").replace("\\t", "\t")
+    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned)
+    cleaned = re.sub(r"^\* ", "- ", cleaned, flags=re.MULTILINE)
+
+    return cleaned.strip()
+
 @app.post("/chat")
 def chat(prompt: Prompt):
+    chat_history.append({"user": prompt.text})
+
     response = client.models.generate_content(
         model="gemini-2.0-flash-001",
         config=types.GenerateContentConfig(system_instruction=system_prompt),
         contents=prompt.text,
     )
-    return {"response": response.text}
+    cleaned_text = clean_response(response.text)
+    chat_history.append({"bot": cleaned_text})
+
+    return {"response": cleaned_text, "history": chat_history}
