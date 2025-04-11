@@ -12,22 +12,25 @@ function App() {
     if (!input.trim()) return;
     setLoading(true);
 
+    const userMessage = input;
+
+    setHistory((prev) => [...prev, { user: userMessage }]);
+    setInput("");
+
     try {
-      const res = await fetch("https://persona-chatbot.onrender.com/chat", {
+      const res = await fetch("http://127.0.0.1:8000/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: input }),
+        body: JSON.stringify({ text: userMessage }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch response from server.");
-      }
+      if (!res.ok) throw new Error("Failed to fetch response from server.");
 
       const result = await res.json();
-      setHistory(result.history);
-      setInput("");
+
+      setHistory((prev) => [...prev, { bot: result.response }]);
     } catch (err: any) {
       console.error("Error:", err);
     } finally {
@@ -45,13 +48,15 @@ function App() {
       <div className="flex justify-between items-center px-6 py-4 bg-gray-800 border-b border-orange-500">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-orange-500 p-0.5 flex items-center justify-center">
-            <img 
-              src={hiteshSirImage} 
-              alt="Hitesh Sir" 
+            <img
+              src={hiteshSirImage}
+              alt="Hitesh Sir"
               className="w-full h-full rounded-full object-cover"
             />
           </div>
-          <h1 className="text-2xl font-bold text-orange-500">Tea Talks with ChaiBot</h1>
+          <h1 className="text-2xl font-bold text-orange-500">
+            Tea Talks with ChaiBot
+          </h1>
         </div>
         <a
           href="https://github.com/Ravi0529/persona-chaibot"

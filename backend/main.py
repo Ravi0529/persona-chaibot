@@ -28,7 +28,7 @@ class Prompt(BaseModel):
 with open("system-prompt.txt", "r", encoding="utf-8") as file:
     system_prompt = file.read()
 
-chat_history = []
+# chat_history = []
 
 def clean_response(text: str) -> str:
     cleaned = re.sub(r"^```[\w]*\n", "", text.strip())
@@ -44,7 +44,7 @@ def clean_response(text: str) -> str:
 
 @app.post("/chat")
 def chat(prompt: Prompt):
-    chat_history.append({"user": prompt.text})
+    # chat_history.append({"user": prompt.text})
 
     response = client.models.generate_content(
         model="gemini-2.0-flash-001",
@@ -52,6 +52,6 @@ def chat(prompt: Prompt):
         contents=prompt.text,
     )
     cleaned_text = clean_response(response.text)
-    chat_history.append({"bot": cleaned_text})
+    # chat_history.append({"bot": cleaned_text})
 
-    return {"response": cleaned_text, "history": chat_history}
+    return {"response": cleaned_text}
